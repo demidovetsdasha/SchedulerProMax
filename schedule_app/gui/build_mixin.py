@@ -33,8 +33,8 @@ class BuildMixin:
             QMessageBox.warning(self, "Факультет", "Выберите факультет.")
             return
         if not pages:
-            QMessageBox.warning(self, "Подгруппы",
-                                "Отметьте подгруппы хотя бы для одной страницы.")
+            QMessageBox.warning(self, "Группы",
+                        "Отметьте группы хотя бы для одной страницы.")
             return
         if not self.cfg.template.exists():
             QMessageBox.critical(self, "Шаблон", f"Не найден шаблон: {self.cfg.template}")

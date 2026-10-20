@@ -547,7 +547,7 @@ def build_document(template: Path, sheet: SheetSchedule, pages: list[list[str]],
     page_columns = [[c for c in sheet.columns if c.name in set(names)] for names in pages]
     page_columns = [cols for cols in page_columns if cols]
     if not page_columns:
-        raise ValueError("Ни на одной странице не выбраны подгруппы.")
+        raise ValueError("Ни на одной странице не выбраны группы.")
 
     sizes: list[float] = []
     for p_i, page_cols in enumerate(page_columns):

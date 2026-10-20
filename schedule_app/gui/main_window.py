@@ -144,7 +144,7 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
         return box
 
     def _build_pages_box(self) -> QGroupBox:
-        box = QGroupBox("3. Страницы документа и подгруппы")
+        box = QGroupBox("3. Страницы документа и группы")
         pl = QHBoxLayout(box)
 
         left = QVBoxLayout()
@@ -161,7 +161,7 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
         btn_del.clicked.connect(self.remove_page)
         btn_auto = QPushButton("Авторазбивка ⚡")
         btn_auto.setToolTip(
-            f"Разложить все подгруппы курса по страницам "
+            f"Разложить все группы курса по страницам "
             f"(до {self.cfg.max_columns_per_page} на страницу)")
         btn_auto.clicked.connect(self.auto_split)
         pbtns.addWidget(btn_add)
@@ -171,7 +171,7 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
         pl.addLayout(left, stretch=3)
 
         right = QVBoxLayout()
-        self.page_groups_label = QLabel("Подгруппы на странице:")
+        self.page_groups_label = QLabel("Группы на странице:")
         right.addWidget(self.page_groups_label)
         self.groups_list = QListWidget()
         self.groups_list.setFlow(QListWidget.LeftToRight)

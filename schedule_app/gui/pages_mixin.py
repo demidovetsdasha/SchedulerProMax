@@ -12,13 +12,13 @@ class PagesMixin:
     @staticmethod
     def _page_title(i: int, names: list[str]) -> str:
         if not names:
-            return f"Стр. {i + 1}: (нет подгрупп)"
+            return f"Стр. {i + 1}: (нет групп)"
         groups: list[str] = []
         for n in names:
             g = n.split("/")[0]
             if g not in groups:
                 groups.append(g)
-        return f"Стр. {i + 1}: {', '.join(groups)}  ({len(names)} подгр.)"
+        return f"Стр. {i + 1}: {', '.join(groups)}  ({len(names)} гр.)"
 
     def refresh_pages(self, select: int | None = None) -> None:
         row = self.pages_list.currentRow() if select is None else select
@@ -63,7 +63,7 @@ class PagesMixin:
     def refresh_groups(self) -> None:
         page = self.pages_list.currentRow()
         self.page_groups_label.setText(
-            f"Подгруппы на странице {page + 1}:" if page >= 0 else "Подгруппы на странице:")
+            f"Группы на странице {page + 1}:" if page >= 0 else "Группы на странице:")
         used_elsewhere = {
             n: i + 1 for i, names in enumerate(self.pages) if i != page for n in names}
         current = set(self.pages[page]) if 0 <= page < len(self.pages) else set()
