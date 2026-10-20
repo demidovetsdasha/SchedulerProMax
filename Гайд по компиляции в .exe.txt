@@ -1,0 +1,16 @@
+Сохздаем виртуальное окружение:
+python -m venv build_env
+.\build_env\Scripts\activate
+.\build_env\Scripts\pip.exe install -r requirements.txt pyinstaller
+
+Запустите компиляцию проекта:
+.\build_env\Scripts\pyinstaller.exe --noconsole --onefile main.py 
+или (по гайду клода) вот так
+.\build_env\Scripts\pyinstaller.exe --noconfirm --windowed --name ScheduleParser --distpath output_exe main.py
+
+PyInstaller успешно соберет весь проект в один файл.
+Скопируйте main.exe в нужную папку, переименуйте в «Нарезка расписания.exe» и положите рядом файл настроек faculties.json.
+
+!! Чтобы заново скомпилить exe без кэша, надо сделать:
+.\build_env\Scripts\pyinstaller.exe --noconsole --onefile --clean --icon=app_icon.ico main.py
+
