@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QPlainTextEdit, QPushButton, QSpinBox, QVBoxLayout, QWidget,
 )
 
-from ..config import AppConfig, load_config
+from ..config import CONFIG_PATH, AppConfig, load_config
 from ..excel_parser import ExcelSchedule, SheetSchedule
 from ..filename_meta import FileMeta
 from .build_mixin import BuildMixin
@@ -73,14 +73,20 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
         self.refresh_pages(select=0)
     
     def _setup_file_logging(self) -> None:
-        """Пишем лог в ~/.schedule_parser/logs/app.log (с ротацией)."""
-        log_dir = Path.home() / ".schedule_parser" / "logs"
-        log_dir.mkdir(parents=True, exist_ok=True)
-        log_file = log_dir / "app.log"
-
-        handler = RotatingFileHandler(
-            log_file, maxBytes=2_000_000, backupCount=3, encoding="utf-8"
-        )
+        """Пишем лог в config/app.log рядом с faculties.json (с ротацией)."""
+        log_file = CONFIG_PATH.parent / "app.log"
+        try:
+            log_file.parent.mkdir(parents=True, exist_ok=True)
+            handler = RotatingFileHandler(
+                log_file, maxBytes=2_000_000, backupCount=3, encoding="utf-8"
+            )
+        except OSError:
+            # Папка приложения недоступна на запись (например, Program Files)
+            log_file = Path.home() / ".schedule_parser" / "app.log"
+            log_file.parent.mkdir(parents=True, exist_ok=True)
+            handler = RotatingFileHandler(
+                log_file, maxBytes=2_000_000, backupCount=3, encoding="utf-8"
+            )
         handler.setFormatter(logging.Formatter(
             "%(asctime)s [%(levelname)s] %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
