@@ -27,3 +27,16 @@ Thumbs.db
 # Файлы, которые точно не должны попасть в репозиторий
 *.log
 output_*.docx
+
+# Результаты сборки
+output_exe/
+build/
+dist/
+*.spec
+
+# Временные файлы Word / Office
+~$*
+*.tmp
+
+# Игнорировать файлы сборки PyInstaller
+*.pyd
