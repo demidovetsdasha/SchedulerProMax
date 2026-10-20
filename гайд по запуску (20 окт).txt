@@ -1,0 +1,6 @@
+Активация окружения
+& .\build_env\Scripts\Activate.ps1
+
+Проверка импортов
+python -c "from schedule_app.gui import run; print('OK')"
+
