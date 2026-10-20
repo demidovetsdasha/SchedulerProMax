@@ -5,6 +5,7 @@ import datetime as dt
 import os
 from pathlib import Path
 
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtGui import QFont, QIcon
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QDateEdit, QFormLayout, QGroupBox,
@@ -20,15 +21,23 @@ from .excel_mixin import ExcelMixin
 from .helpers import qdate
 from .pages_mixin import PagesMixin
 from .styles import MODERN_STYLESHEET
+import logging
+from logging.handlers import RotatingFileHandler
 
 
 class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
     def __init__(self):
         super().__init__()
+        self._setup_file_logging() 
         self._setup_window()
         self._setup_state()
         self._build_ui()
         self._init_data()
+
+        # Горячие клавиши для администратора
+        QShortcut(QKeySequence("Ctrl+Shift+L"), self).activated.connect(self._toggle_console)
+        QShortcut(QKeySequence("Ctrl+Shift+C"), self).activated.connect(self._open_config)
+
 
     # --------------------------------------------------------- инициализация
     def _setup_window(self) -> None:
@@ -62,6 +71,28 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
     def _init_data(self) -> None:
         self.fill_faculties()
         self.refresh_pages(select=0)
+    
+    def _setup_file_logging(self) -> None:
+        """Пишем лог в ~/.schedule_parser/logs/app.log (с ротацией)."""
+        log_dir = Path.home() / ".schedule_parser" / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_file = log_dir / "app.log"
+
+        handler = RotatingFileHandler(
+            log_file, maxBytes=2_000_000, backupCount=3, encoding="utf-8"
+        )
+        handler.setFormatter(logging.Formatter(
+            "%(asctime)s [%(levelname)s] %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        ))
+
+        self._file_logger = logging.getLogger("schedule_app")
+        self._file_logger.setLevel(logging.DEBUG)
+        # Не дублируем хэндлеры при повторном создании окна
+        if not self._file_logger.handlers:
+            self._file_logger.addHandler(handler)
+
+        self._file_logger.info(f"=== Запуск приложения (файл: {log_file}) ===")
 
     # -------------------------------------------------- построение виджетов
     def _build_file_box(self) -> QGroupBox:
@@ -199,6 +230,7 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
         self.log.setReadOnly(True)
         self.log.setPlaceholderText("Системные логи и сообщения будут выводиться здесь...")
         self.log.setMaximumHeight(120)
+        self.log.setVisible(False)
         return self.log
 
     def _build_actions_bar(self) -> QHBoxLayout:
@@ -207,6 +239,7 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
         btn_cfg = QPushButton("⚙️ Настройка факультетов и деканов")
         btn_cfg.setToolTip("Открыть файл настроек для редактирования списков и ФИО")
         btn_cfg.clicked.connect(self.open_and_auto_reload_config)
+        btn_cfg.setVisible(False)
 
         self.btn_build = QPushButton("Сформировать Word ")
         self.btn_build.setObjectName("btn_build_word")
@@ -245,6 +278,12 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
 
     def log_msg(self, text: str) -> None:
         self.log.appendPlainText(text)
+        if hasattr(self, "_file_logger"):
+            # traceback идёт как ERROR, остальное как INFO
+            if "Traceback" in text or "❌" in text:
+                self._file_logger.error(text)
+            else:
+                self._file_logger.info(text)
 
     # ------------------------------------------------------- конфиг/факультеты
     def fill_faculties(self, select_code: str | None = None) -> None:
@@ -312,3 +351,11 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
         order = [c.name for c in sheet.columns] if sheet else []
         return sorted(set(names),
                       key=lambda n: order.index(n) if n in order else len(order))
+
+    def _toggle_console(self) -> None:
+        """Ctrl+Shift+L — показать/скрыть консоль (для администратора)."""
+        self.log.setVisible(not self.log.isVisible())
+
+    def _open_config(self) -> None:
+        """Ctrl+Shift+C — открыть config/faculties.json (для администратора)."""
+        self.open_and_auto_reload_config()
