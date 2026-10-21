@@ -1,4 +1,4 @@
-# Парсер расписания Excel → Word (БГУИЯ)
+# Парсер расписания Excel → Word
 
 Настольное приложение (macOS / Windows), которое переносит расписание из Excel
 в Word по шаблону `templates/template.docx`.
@@ -44,33 +44,55 @@
 | `faculties[].header_name` | текст в шапке после «N КУРСА …» |
 | `faculties[].aliases` | ключевые слова для автоопределения факультета по Excel |
 
-После правки конфига нажмите **Перечитать конфиг** в приложении.
+После правки конфига перезапустите приложение для отображения актуальных данных.
 
 ## Запуск из исходников
 
 ```bash
-python3 -m venv .venv
-# macOS:   source .venv/bin/activate
-# Windows: .venv\Scripts\activate
+python -m venv build_env
+# Windows: .\build_env\Scripts\Activate.ps1
 pip install -r requirements.txt
 python main.py
 ```
 
-## Сборка в программу (.app / .exe)
-
-Подробная инструкция для Windows — в [BUILD_WINDOWS.md](BUILD_WINDOWS.md).
+## Сборка в программу (.exe)
 
 Собирать нужно на той ОС, для которой нужна программа.
 
+### Перед каждой сборкой
+
+1. Активировать виртуальное окружение
+
 ```bash
-pip install pyinstaller
-pyinstaller --noconfirm --windowed --name ScheduleParser main.py
+.\build_env\Scripts\Activate.ps1
 ```
 
-Затем положите рядом с программой папки `config` и `templates`:
+2. Убедиться, что установлен PyInstaller
+```bash
+pip install pyinstaller
+```
 
-- Windows: `dist/ScheduleParser/` → `config/`, `templates/` рядом с `ScheduleParser.exe`
-- macOS: `dist/` → `config/`, `templates/` рядом с `ScheduleParser.app`
-  (или внутрь `ScheduleParser.app/Contents/MacOS/`)
+3. Непосредственная сборка
 
-Так конфиг остаётся доступным для редактирования без пересборки.
+```bash
+pyinstaller --noconfirm --clean --onefile `
+    --name ScheduleParser `
+    --icon app_icon.ico `
+    --windowed `
+    --add-data "app_icon.ico;." `
+    main.py
+```
+
+| Параметр | Суть |
+|----------|--------------|
+| `--noconfirm` | Не спрашивать подтверждение при перезаписи папки `dist/` и `build/`. |
+| `--clean` | Очистить кэш PyInstaller перед сборкой. Удаляет старые временные файлы из `build/`. |
+| `--onefile` | Собрать всё в **один** `.exe`-файл (вместо папки с сотнями служебных файлов). |
+| `--name ScheduleParser` | Имя итогового `.exe` (без расширения). |
+| `--icon app_icon.ico` | Задать иконку `app_icon.ico` для `.exe`.|
+| `--windowed` | Запускать приложение **без чёрного консольного окна**.|
+| `--add-data "app_icon.ico;."` | Запаковать иконку `app_icon.ico` **внутрь** `.exe`, чтобы она была доступна всегда во время работы.|
+| `main.py` | Точка входа приложения. |
+
+
+4. После сборки необходимо положить рядом с программой папки `config` и `templates`. Так конфиг остаётся доступным для редактирования без пересборки.
