@@ -12,6 +12,20 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## Автотесты
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+Тесты лежат в `tests/` и используют примеры из `testing/тестирование/`:
+конфиг и пути (запуск из VS Code и из exe), разбор имени файла, парсер Excel
+(включая группы с нецифровым названием вроде «ТянУИЯ»), разбивка на страницы,
+сборка .docx, лог `config/app.log` и smoke-тест окна (без показа на экране).
+Добавили новый пример в `testing/тестирование/` — допишите ожидания в
+`EXPECTED` в `tests/test_excel_parser.py`.
+
 ## Работа в программе
 
 1. **Открыть…** — выбрать Excel файл расписания (`.xlsx`, `.xls`).

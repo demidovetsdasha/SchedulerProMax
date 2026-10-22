@@ -13,16 +13,15 @@ from PySide6.QtWidgets import (
     QPlainTextEdit, QPushButton, QSpinBox, QVBoxLayout, QWidget,
 )
 
-from ..config import CONFIG_PATH, AppConfig, load_config
+from ..config import AppConfig, load_config
 from ..excel_parser import ExcelSchedule, SheetSchedule
 from ..filename_meta import FileMeta
+from ..logging_setup import setup_file_logging
 from .build_mixin import BuildMixin
 from .excel_mixin import ExcelMixin
 from .helpers import qdate
 from .pages_mixin import PagesMixin
 from .styles import MODERN_STYLESHEET
-import logging
-from logging.handlers import RotatingFileHandler
 
 
 class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
@@ -73,32 +72,7 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
         self.refresh_pages(select=0)
     
     def _setup_file_logging(self) -> None:
-        """Пишем лог в config/app.log рядом с faculties.json (с ротацией)."""
-        log_file = CONFIG_PATH.parent / "app.log"
-        try:
-            log_file.parent.mkdir(parents=True, exist_ok=True)
-            handler = RotatingFileHandler(
-                log_file, maxBytes=2_000_000, backupCount=3, encoding="utf-8"
-            )
-        except OSError:
-            # Папка приложения недоступна на запись (например, Program Files)
-            log_file = Path.home() / ".schedule_parser" / "app.log"
-            log_file.parent.mkdir(parents=True, exist_ok=True)
-            handler = RotatingFileHandler(
-                log_file, maxBytes=2_000_000, backupCount=3, encoding="utf-8"
-            )
-        handler.setFormatter(logging.Formatter(
-            "%(asctime)s [%(levelname)s] %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        ))
-
-        self._file_logger = logging.getLogger("schedule_app")
-        self._file_logger.setLevel(logging.DEBUG)
-        # Не дублируем хэндлеры при повторном создании окна
-        if not self._file_logger.handlers:
-            self._file_logger.addHandler(handler)
-
-        self._file_logger.info(f"=== Запуск приложения (файл: {log_file}) ===")
+        self._file_logger, _ = setup_file_logging()
 
     # -------------------------------------------------- построение виджетов
     def _build_file_box(self) -> QGroupBox:
@@ -348,13 +322,7 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
         sheet = self.current_sheet()
         if not sheet:
             return []
-        course = str(self.course_spin.value())
-        if not any(c.group.startswith(course) for c in sheet.columns):
-            return [c.name for c in sheet.columns]
-        # Группы с нецифровым названием (например, «ТянУИЯ») к курсу не привязаны — оставляем всегда
-        cols = [c for c in sheet.columns
-                if c.group.startswith(course) or not c.group[:1].isdigit()]
-        return [c.name for c in cols]
+        return [c.name for c in sheet.columns_for_course(self.course_spin.value())]
 
     def sheet_order(self, names) -> list[str]:
         sheet = self.current_sheet()

@@ -76,6 +76,15 @@ class SheetSchedule:
         firsts = {g[0] for g in self.groups if g[:1].isdigit()}
         return int(firsts.pop()) if len(firsts) == 1 else None
 
+    def columns_for_course(self, course: int) -> list[Column]:
+        """Столбцы групп курса; если групп этого курса на листе нет — все столбцы."""
+        prefix = str(course)
+        if not any(c.group.startswith(prefix) for c in self.columns):
+            return list(self.columns)
+        # Группы с нецифровым названием (например, «ТянУИЯ») к курсу не привязаны — оставляем всегда
+        return [c for c in self.columns
+                if c.group.startswith(prefix) or not c.group[:1].isdigit()]
+
 
 @dataclass
 class ExcelSchedule:
