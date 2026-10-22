@@ -59,17 +59,20 @@ def apply_light_theme(app: QApplication) -> None:
 
 
 def _icon(name: str, color: str, width: float, points: list[tuple[float, float]]) -> Path:
-    """Рисует ломаную в PNG 28×28 (для QSS нужен файл) и возвращает путь к нему.
+    """Рисует ломаную в PNG 14×14 — ровно под QSS width: 14px.
 
-    Рисуем с запасом — QSS уменьшит до размера элемента, на HiDPI будет чётко.
+    width — толщина линии в координатах 28×28, масштабируется под 14×14.
     """
+    size = 14
     path = Path(tempfile.gettempdir()) / f"schedule_parser_{name}.png"
-    img = QImage(28, 28, QImage.Format_ARGB32)
+    img = QImage(size, size, QImage.Format_ARGB32)
     img.fill(Qt.transparent)
     p = QPainter(img)
     p.setRenderHint(QPainter.Antialiasing)
-    p.setPen(QPen(QColor(color), width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
-    p.drawPolyline([QPointF(x, y) for x, y in points])
+    scale = size / 28
+    # Толщину НЕ пересчитываем дважды — просто масштабируем
+    p.setPen(QPen(QColor(color), width * scale, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+    p.drawPolyline([QPointF(x * scale, y * scale) for x, y in points])
     p.end()
     img.save(str(path), "PNG")
     return path
@@ -79,8 +82,8 @@ def themed_stylesheet(qss: str) -> str:
     """Подставляет в QSS пути к нарисованным иконкам (%CHECK_ICON%, %DOWN_ICON%, %UP_ICON%)."""
     icons = {
         "%CHECK_ICON%": _icon("check", "#FFFFFF", 3.5, [(6, 14.5), (11.5, 20), (22, 8)]),
-        "%DOWN_ICON%": _icon("down", "#4A5568", 3, [(7, 10), (14, 17), (21, 10)]),
-        "%UP_ICON%": _icon("up", "#4A5568", 3, [(7, 18), (14, 11), (21, 18)]),
+        "%DOWN_ICON%":  _icon("down", "#4A5568", 3.0, [(7, 10), (14, 17), (21, 10)]),
+        "%UP_ICON%":    _icon("up", "#4A5568", 3.0, [(7, 18), (14, 11), (21, 18)]),
     }
     for key, path in icons.items():
         qss = qss.replace(key, path.as_posix())

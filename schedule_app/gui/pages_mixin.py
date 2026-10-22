@@ -4,6 +4,8 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QBrush, QColor
 from PySide6.QtWidgets import QListWidgetItem
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QBrush, QColor, QFontMetrics
 
 from ..docx_builder import paginate
 
@@ -69,15 +71,24 @@ class PagesMixin:
         current = set(self.pages[page]) if 0 <= page < len(self.pages) else set()
         self.groups_list.blockSignals(True)
         self.groups_list.clear()
+
+        fm = QFontMetrics(self.groups_list.font())        # ← для расчёта ширины текста
+
         for name in self.course_columns():
             other = used_elsewhere.get(name)
-            item = QListWidgetItem(f"{name}  (стр. {other})" if other else name)
+            text = f"{name}  (стр. {other})" if other else name
+            item = QListWidgetItem(text)
             item.setData(Qt.UserRole, name)
             item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
             item.setCheckState(Qt.Checked if name in current else Qt.Unchecked)
             if other:
                 item.setForeground(QBrush(QColor("#888888")))
+
+            # Явный sizeHint: иначе кастомный QSS-indicator ломает расчёт ширины
+            text_w = fm.horizontalAdvance(text)
+            item.setSizeHint(QSize(text_w + 44, 26))       # 44 = indicator + padding + запас
             self.groups_list.addItem(item)
+
         self.groups_list.blockSignals(False)
 
     def on_group_toggled(self, item: QListWidgetItem) -> None:

@@ -142,7 +142,6 @@ MODERN_STYLESHEET = """
         color: #2D3748;
     }
     QListWidget::item {
-        color: #2D3748;
         padding: 6px;
         border-radius: 4px;
         margin: 2px 0;
