@@ -10,8 +10,11 @@ def run() -> int:
     import sys
     from PySide6.QtWidgets import QApplication
 
+    from .theme import apply_light_theme
+
     app = QApplication(sys.argv)
     app.setApplicationName("ScheduleParser")
+    apply_light_theme(app)
     win = MainWindow()
     win.show()
     return app.exec()

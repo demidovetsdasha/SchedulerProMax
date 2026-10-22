@@ -22,6 +22,7 @@ from .excel_mixin import ExcelMixin
 from .helpers import qdate
 from .pages_mixin import PagesMixin
 from .styles import MODERN_STYLESHEET
+from .theme import themed_stylesheet
 
 
 class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
@@ -43,7 +44,7 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
         self.setWindowTitle("Нарезка расписания")
         self.resize(850, 850)
         self.setFont(QFont("Inter", 10))
-        self.setStyleSheet(MODERN_STYLESHEET)
+        self.setStyleSheet(themed_stylesheet(MODERN_STYLESHEET))
         self.setup_app_icon()
 
     def _setup_state(self) -> None:
