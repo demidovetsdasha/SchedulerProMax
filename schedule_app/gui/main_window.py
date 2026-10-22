@@ -349,7 +349,11 @@ class MainWindow(ExcelMixin, PagesMixin, BuildMixin, QMainWindow):
         if not sheet:
             return []
         course = str(self.course_spin.value())
-        cols = [c for c in sheet.columns if c.group.startswith(course)] or sheet.columns
+        if not any(c.group.startswith(course) for c in sheet.columns):
+            return [c.name for c in sheet.columns]
+        # Группы с нецифровым названием (например, «ТянУИЯ») к курсу не привязаны — оставляем всегда
+        cols = [c for c in sheet.columns
+                if c.group.startswith(course) or not c.group[:1].isdigit()]
         return [c.name for c in cols]
 
     def sheet_order(self, names) -> list[str]:
